@@ -1,6 +1,6 @@
 # Vertex Graph Junction Generator
 
-This Python project processes Boolean CNF formulas in DIMACS format to construct NBC based output file, that includes all NBC information for the solution of the given problam.
+This Python project processes Boolean CNF formulas in DIMACS format to generate an NBC-compatible output file containing all the necessary network-based computation (NBC) data required to solve the given problem.
 
 ## Project Structure
 
