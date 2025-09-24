@@ -1,3 +1,5 @@
+import sys
+
 # This function reads dimacs files & creates the clauses by it
 def read_dimacs(filename):
     clauses = []
@@ -93,12 +95,12 @@ def save_results(output_file, split_arr, reset_arr, vertex_vals):
 
 
 if __name__ == "__main__":
-    # if len(sys.argv) < 2:
-    #     print("Dimacs file required")
-    #     sys.exit()
+    if len(sys.argv) < 2:
+        print("Dimacs file required")
+        sys.exit()
 
     # Dimacs file to load
-    filename = "VertexGraph1.dimacs"#sys.argv[1]
+    filename = sys.argv[1]
     num_vars, num_clauses, clauses = read_dimacs(filename)
 
     # ----Print for verification----
