@@ -1,4 +1,6 @@
 import sys
+import os
+from datetime import datetime
 
 # This function reads dimacs files & creates the clauses by it
 def read_dimacs(filename):
@@ -81,17 +83,33 @@ def calculate_block(vertex_vals):
     return split_junctions, reset_false_junctions
 
 
-def save_results(output_file, split_arr, reset_arr, vertex_vals):
-    header = str(vertex_vals[0])
-    vertex_vals.pop(0)
-    for val in vertex_vals:
-        header += " + " + str(val)
+def save_results(output_file, split_arr, reset_arr, vertex_vals, num_vars):
+    # Compute rows (sum of all rows we found) and columns (2^num_vars)
+    total_rows = sum(vertex_vals)
+    total_columns = (2 ** num_vars)-1
+
+    # Build header without mutating vertex_vals
+    if vertex_vals:
+        header = " + ".join(str(v) for v in vertex_vals)
+    else:
+        header = ""
     print(header)
 
     with open(output_file, "w") as file:
         file.write(header + "\n")
         file.write(f"[x,y] in {split_arr}\n")
         file.write(f"[x,y] in {reset_arr}\n")
+
+        # Two empty lines before specs
+        file.write("\n\n")
+
+        # CTL/LTL specifications footer
+        file.write(f"CTLSPEC NAME    ctl_base    := EF(row = {total_rows} & column = {total_columns});\n")
+        file.write(f"LTLSPEC NAME    ltl_base    := G!(row = {total_rows} & column = {total_columns});\n")
+        for z in range(num_vars+1):
+            file.write(
+                f"CTLSPEC NAME    ctl_z_{z}     := EF(row = {total_rows} & column = {total_columns} & z_split = {z});\n"
+            )
 
 
 if __name__ == "__main__":
@@ -115,4 +133,9 @@ if __name__ == "__main__":
 
     split_juncs, reset_false_juncs = calculate_block(vertex_vals)
 
-    save_results("output.txt", split_juncs, reset_false_juncs, vertex_vals)
+    # Create a unique output filename based on input filename and timestamp
+    base_name = os.path.splitext(os.path.basename(filename))[0]
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    output_filename = f"output_{base_name}_{timestamp}.txt"
+    print(f"Writing results to {output_filename}")
+    save_results(output_filename, split_juncs, reset_false_juncs, vertex_vals, num_vars)
