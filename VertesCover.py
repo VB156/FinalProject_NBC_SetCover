@@ -29,20 +29,23 @@ def read_dimacs(filename):
     return num_vars, num_clauses, clauses
 #------------------------------------------------------------------------------------------------------#
 
+#this function is used to convert the clauses to a list of boolean values
 def vertex_bool_val(num_vars, clauses):
     vertex_vals_arr = [0] * (num_vars)
-    # go over each vertex
-    for num in range(num_vars):
-        val = 0
-        # go over clauses
+    # For each vertex index (1..num_vars), build a bit pattern over clauses
+    for vertex_index_zero_based in range(num_vars):
+        vertex_id_one_based = vertex_index_zero_based + 1
+        bit_pattern_value = 0
         for clause in clauses:
-            val = val << 1
-            if clause[num] > 0:
-                val += 1
-        vertex_vals_arr[num] = val
+            bit_pattern_value = bit_pattern_value << 1
+            # New DIMACS interpretation: clause is a list of positive vertex ids that are present
+            if vertex_id_one_based in clause:
+                bit_pattern_value += 1
+        vertex_vals_arr[vertex_index_zero_based] = bit_pattern_value
     return vertex_vals_arr
+#------------------------------------------------------------------------------------------------------#
 
-
+#this function is used to calculate the block for each binary variable
 def calculate_block(vertex_vals):
     num_rows = 0
     for val in vertex_vals:
@@ -81,8 +84,9 @@ def calculate_block(vertex_vals):
     print(split_junctions)
     print(reset_false_junctions)
     return split_junctions, reset_false_junctions
+#------------------------------------------------------------------------------------------------------#
 
-
+#this function is used to save the results to the output file
 def save_results(output_file, split_arr, reset_arr, vertex_vals, num_vars):
     # Compute rows (sum of all rows we found) and columns (2^num_vars)
     total_rows = sum(vertex_vals)
@@ -111,7 +115,7 @@ def save_results(output_file, split_arr, reset_arr, vertex_vals, num_vars):
                 f"CTLSPEC NAME    ctl_z_{z}     := EF(row = {total_rows} & column = {total_columns} & z_split = {z});\n"
             )
 
-
+#------------------------------------------------------------------------------------------------------#
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Dimacs file required")
